@@ -84,7 +84,12 @@ def checkclassifier(vector):
         print('%s: %s' % (key, value))
 
 def dataset_junheng(dataset, number):
-    ''''''
+    '''
+    对所有半径类别数据进行数据均衡化
+    :param dataset: 数据集
+    :param number: 各类半径数量
+    :return: 处理后数据
+    '''
     dataset_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(25)])
     dataset_return = np.array([0])
     for i in range(25):
