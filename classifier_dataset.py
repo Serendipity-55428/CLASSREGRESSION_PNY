@@ -67,6 +67,7 @@ def dataset_cl(dataset, space):
     for inf, sup in space:
         dataset_sub_pd = dataset_pd.loc[dataset_pd['r'] >= inf]
         dataset_sub_pd = dataset_sub_pd.loc[dataset_sub_pd['r'] < sup]
+        if dataset_sub_pd.values.shape[0] == 0: continue
         dataset_sub_pd['r'] = space.index((inf, sup))
         dataset_return = dataset_sub_pd.values if dataset_return.any() == 0 else \
             np.vstack((dataset_return, dataset_sub_pd.values))
@@ -141,6 +142,7 @@ if __name__ == '__main__':
     # print(dataset.shape)
     # print(Counter(dataset[:, -1]))
     dataset_cl25 = dataset_cl(dataset=dataset, space=space)
+    print(dataset_cl25.shape)
     # checkclassifier(dataset_cl25[:, -1])
     dataset_cl25_2000 = dataset_junheng(dataset=dataset_cl25, number=2000)
     # checkclassifier(dataset_cl25_2000[:, -1])
@@ -150,6 +152,6 @@ if __name__ == '__main__':
     dataset_fft = fft_transformer(dataset_dense, 100)
     dataset = np.hstack((dataset_4feature, dataset_fft, label))
     dataset_guiyi = guiyi(dataset)
-    # print(dataset_guiyi.shape)
+    print(dataset_guiyi.shape)
     SaveFile(data=dataset_guiyi, savepickle_p='/home/xiaosong/桌面/pny_cl25.pickle')
     # print(np.max(dataset_guiyi, axis=0))
