@@ -29,7 +29,7 @@ def dataset_regression_guiyi(dataset, space):
         dataset_sub_pd.drop(['r_sub'], axis=1, inplace=True)
         dataset_return = dataset_sub_pd.values if dataset_return.any() == 0 else \
             np.vstack((dataset_return, dataset_sub_pd.values))
-
+    print(np.min(dataset_return[:, -1]), np.max(dataset_return[:, -1]))
     return dataset_return
 
 if __name__ == '__main__':
@@ -37,3 +37,4 @@ if __name__ == '__main__':
     # print(space)
     p = '/home/xiaosong/pny相关数据/data_pny/PNY_all.pickle'
     dataset = LoadFile(p)
+    dataset_regression_guiyi(dataset, space)
