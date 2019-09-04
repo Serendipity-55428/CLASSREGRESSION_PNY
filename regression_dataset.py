@@ -25,6 +25,7 @@ def dataset_regression_guiyi(dataset, space):
         dataset_sub_pd['r_sub'] = [(inf, sup)] * (dataset_sub_pd.values.shape[0])
         dataset_r_sub = np.array(list(dataset_sub_pd['r_sub'].values))
         dataset_r = dataset_sub_pd['r'].values
+        print(dataset_r.shape)
         dataset_sub_pd['r'] = (dataset_r - dataset_r_sub[:, 0]) / (dataset_r_sub[:, 1] - dataset_r_sub[:, 0])
         dataset_sub_pd.drop(['r_sub'], axis=1, inplace=True)
         dataset_return = dataset_sub_pd.values if dataset_return.any() == 0 else \
