@@ -53,11 +53,15 @@ def classifier_25(n):
     space_sub1 = list(space_sub1)
     space_sub2 = list(space_sub2)
     space = zip(space_sub1, space_sub2)
-    # print(list(space))
     return list(space)
 
 def dataset_cl(dataset, space):
-    ''''''
+    '''
+    将数据集标签按照最优半径所属于的范围进行划分
+    :param dataset: 数据集
+    :param space: 半径划分区间列表
+    :return: 处理后的数据
+    '''
     dataset_return = np.array([0])
     dataset_pd = pd.DataFrame(data=dataset, columns=['F' + str(i) for i in range(dataset.shape[-1]-1)] + ['r'])
     for inf, sup in space:
@@ -68,11 +72,79 @@ def dataset_cl(dataset, space):
             np.vstack((dataset_return, dataset_sub_pd.values))
     return dataset_return
 
+def checkclassifier(vector):
+    '''
+    对输入数据向量进行各个数量类别统计
+    :param vector: 待统计数据向量
+    :return: None
+    '''
+    statistic = Counter(vector)
+    statistic = sorted(statistic.items(), key=lambda x: x[0])
+    for key, value in statistic:
+        print('%s: %s' % (key, value))
+
+def dataset_junheng(dataset, number):
+    ''''''
+    dataset_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(25)])
+    dataset_return = np.array([0])
+    for i in range(25):
+        sub_dataset = dataset_pd.loc[dataset_pd['24'] == i]
+        if sub_dataset.values.shape[0] > 2000:
+            dataset_return = sub_dataset.values[:2000, :] if dataset_return.any() == 0 else \
+                np.vstack((dataset_return, sub_dataset.values[:2000, :]))
+        elif sub_dataset.values.shape[0] and sub_dataset.values.shape[0] < 2000:
+            judge = number % sub_dataset.values.shape[0]
+            num = number // sub_dataset.values.shape[0]
+            if judge != 0:
+                num += 1
+            dataset_sub2000 = sub_dataset.values
+            for i in range(num-1):
+                dataset_sub2000 = np.vstack((dataset_sub2000, sub_dataset.values))
+            dataset_sub2000 = dataset_sub2000[:2000, :]
+            dataset_return = dataset_sub2000 if dataset_return.any() == 0 else \
+                np.vstack((dataset_return, dataset_sub2000))
+    return dataset_return
+
+def guiyi(dataset):
+    '''
+    对带标签的数据集进行特征归一化
+    :param dataset: 带标签的数据集
+    :return: 归一化后的特征/标签矩阵
+    '''
+    feature_min = np.min(dataset[:, :-1], axis=0)
+    feature_max = np.max(dataset[:, :-1], axis=0)
+    feature_guiyi = (dataset[:, :-1] - feature_min) / (feature_max - feature_min)
+    dataset_guiyi = np.hstack((feature_guiyi, dataset[:, -1][:, np.newaxis]))
+    return dataset_guiyi
+
+def fft_transformer(dataset, N):
+    '''
+    对矩阵中各行按照指定点数做FFT变换
+    :param dataset: 待处理矩阵
+    :param N: 变换后点数
+    :return: 处理后矩阵
+    '''
+    fft_abs = np.abs(np.fft.fft(a=dataset, n=N, axis=1))
+    return fft_abs
+
 
 if __name__ == '__main__':
     space = classifier_25(26)
+    # print(space)
     p = '/home/xiaosong/pny相关数据/data_pny/PNY_all.pickle'
     dataset = LoadFile(p)
     # print(dataset.shape)
+    # print(Counter(dataset[:, -1]))
     dataset_cl25 = dataset_cl(dataset=dataset, space=space)
-    print(dataset_cl25.shape, Counter(dataset_cl25[:, -1]))
+    # checkclassifier(dataset_cl25[:, -1])
+    dataset_cl25_2000 = dataset_junheng(dataset=dataset_cl25, number=2000)
+    # checkclassifier(dataset_cl25_2000[:, -1])
+    # print(dataset_cl25_2000.shape)
+    dataset_4feature, dataset_dense, label = dataset_cl25_2000[:, :4], dataset_cl25_2000[:, 4:-1], \
+                                             dataset_cl25_2000[:, -1][:, np.newaxis]
+    dataset_fft = fft_transformer(dataset_dense, 100)
+    dataset = np.hstack((dataset_4feature, dataset_fft, label))
+    dataset_guiyi = guiyi(dataset)
+    # print(dataset_guiyi.shape)
+    SaveFile(data=dataset_guiyi, savepickle_p='/home/xiaosong/桌面/pny_cl25.pickle')
+    # print(np.max(dataset_guiyi, axis=0))
