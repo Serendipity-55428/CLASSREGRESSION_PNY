@@ -95,10 +95,10 @@ def dataset_junheng(dataset, number):
     dataset_return = np.array([0])
     for i in range(25):
         sub_dataset = dataset_pd.loc[dataset_pd['24'] == i]
-        if sub_dataset.values.shape[0] > 2000:
-            dataset_return = sub_dataset.values[:2000, :] if dataset_return.any() == 0 else \
-                np.vstack((dataset_return, sub_dataset.values[:2000, :]))
-        elif sub_dataset.values.shape[0] and sub_dataset.values.shape[0] < 2000:
+        if sub_dataset.values.shape[0] > number:
+            dataset_return = sub_dataset.values[:number, :] if dataset_return.any() == 0 else \
+                np.vstack((dataset_return, sub_dataset.values[:number, :]))
+        elif sub_dataset.values.shape[0] and sub_dataset.values.shape[0] < number:
             judge = number % sub_dataset.values.shape[0]
             num = number // sub_dataset.values.shape[0]
             if judge != 0:
@@ -106,7 +106,7 @@ def dataset_junheng(dataset, number):
             dataset_sub2000 = sub_dataset.values
             for i in range(num-1):
                 dataset_sub2000 = np.vstack((dataset_sub2000, sub_dataset.values))
-            dataset_sub2000 = dataset_sub2000[:2000, :]
+            dataset_sub2000 = dataset_sub2000[:number, :]
             dataset_return = dataset_sub2000 if dataset_return.any() == 0 else \
                 np.vstack((dataset_return, dataset_sub2000))
     return dataset_return
