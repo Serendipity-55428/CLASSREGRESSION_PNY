@@ -187,21 +187,21 @@ def onehot(dataset, class_number):
 def graph_cl25(dataset):
     ''''''
     dataset = onehot(dataset, 25)
-    print(dataset.shape)
     model_cl25 = Cl25()
     optimizer = tf.keras.optimizers.SGD(lr=1e-2)
     model_cl25.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     train_data, test_data = spliting(dataset, 6000)
     flag = 0
     for epoch in range(10000):
+        if epoch % 100 == 0:
+            model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=1)
         for train_data_batch in input(dataset=train_data, batch_size=500):
             loss_train = model_cl25.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-25]], y=train_data_batch[:, -25:])
             if epoch % 100 == 0 and flag == 0:
                 print('训练集损失函数值为: %s' % loss_train)
                 flag = 1
         flag = 0
-        if epoch % 100 == 0:
-            model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
+
 
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_cl25.pickle'
