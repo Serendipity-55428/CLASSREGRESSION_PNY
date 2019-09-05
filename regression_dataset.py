@@ -12,13 +12,14 @@ import pandas as pd
 import pickle
 import os
 from collections import Counter
-from classifier_dataset import LoadFile, SaveFile, classifier_25, checkclassifier, dataset_junheng, guiyi, fft_transformer
+from classifier_dataset import LoadFile, SaveFile, classifier_25, checkclassifier, guiyi, fft_transformer
 
-def dataset_regression_guiyi(dataset, space):
+def dataset_regression_guiyi(dataset, space, number):
     '''
     对数据集中所有最优半径数值进行区间内的归一化
     :param dataset: 数据集
     :param space: 区间列表
+    :param number: 均衡化后各类半径数量
     :return: 处理后数据集
     '''
     dataset_return = np.array([0])
@@ -34,9 +35,22 @@ def dataset_regression_guiyi(dataset, space):
         # print(dataset_r.shape)
         dataset_sub_pd['r'] = (dataset_r - dataset_r_sub[:, 0]) / (dataset_r_sub[:, 1] - dataset_r_sub[:, 0])
         dataset_sub_pd.drop(['r_sub'], axis=1, inplace=True)
-        dataset_return = dataset_sub_pd.values if dataset_return.any() == 0 else \
-            np.vstack((dataset_return, dataset_sub_pd.values))
-    # print(np.min(dataset_return[:, -1]), np.max(dataset_return[:, -1]))
+        dataset_sub = dataset_sub_pd.values
+        # print(dataset_sub.shape)
+        if dataset_sub.shape[0] > number:
+            dataset_return = dataset_sub[:number, :] if dataset_return.any() == 0 else \
+                np.vstack((dataset_return, dataset_sub[:number, :]))
+        elif dataset_sub.shape[0] and dataset_sub.shape[0] < number:
+            judge = number % dataset_sub.shape[0]
+            num = number // dataset_sub.shape[0]
+            if judge != 0:
+                num += 1
+            dataset_sub2000 = dataset_sub
+            for i in range(num-1):
+                dataset_sub2000 = np.vstack((dataset_sub2000, dataset_sub))
+            dataset_sub2000 = dataset_sub2000[:number, :]
+            dataset_return = dataset_sub2000 if dataset_return.any() == 0 else \
+                np.vstack((dataset_return, dataset_sub2000))
     return dataset_return
 
 if __name__ == '__main__':
@@ -44,7 +58,8 @@ if __name__ == '__main__':
     # print(space)
     p = '/home/xiaosong/pny相关数据/data_pny/PNY_all.pickle'
     dataset = LoadFile(p)
-    dataset_guiyi_sub = dataset_regression_guiyi(dataset, space)
+    dataset_guiyi_sub = dataset_regression_guiyi(dataset, space, number=2000)
+    # print(dataset_guiyi_sub.shape)
     dataset_4feature, dataset_dense, label = dataset_guiyi_sub[:, :4], dataset_guiyi_sub[:, 4:-1], \
                                              dataset_guiyi_sub[:, -1][:, np.newaxis]
     dataset_fft = fft_transformer(dataset_dense, 100)
