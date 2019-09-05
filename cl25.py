@@ -7,6 +7,7 @@
 @file: cl25
 @time: 2019/9/4 下午10:17
 '''
+from classifier_dataset import LoadFile, SaveFile
 import tensorflow as tf
 import numpy as np
 class Resnet:
@@ -124,14 +125,61 @@ def Cl25():
     model_cl25 = tf.keras.Model(inputs=[input1, input2], outputs=layer)
     return model_cl25
 
-def graph_cl25():
+def input(dataset, batch_size):
+    '''
+    按照指定批次大小随机输出训练集中一个批次的特征/标签矩阵
+    :param dataset: 数据集特征矩阵(特征经过01编码后的)
+    :param batch_size: 批次大小
+    :return: 特征矩阵/标签
+    '''
+    for i in range(0, len(dataset), batch_size):
+        yield dataset[i:i+batch_size, :]
+
+def spliting(dataset, size):
+    '''
+    留一法划分训练和测试集
+    :param dataset: 特征数据集/标签
+    :param size: 测试集大小
+    :return: 训练集和测试集特征矩阵/标签
+    '''
+    #随机得到size大小的交叉验证集
+    test_row = np.random.randint(low=0, high=len(dataset)-1, size=(size))
+    #从dataset中排除交叉验证集
+    train_row = list(filter(lambda x: x not in test_row, range(len(dataset)-1)))
+    return dataset[train_row, :], dataset[test_row, :]
+
+# def acc_regression(Threshold, y_true, y_pred):
+#     '''
+#     回归精确度（预测值与实际值残差在阈值范围内的数量/样本总数）
+#     :param Threshold: 预测值与实际值之间的绝对值之差阈值
+#     :param y_true: 样本实际标签
+#     :param y_pred: 样本预测结果
+#     :return: 精确率，type: ndarray
+#     '''
+#     # 残差布尔向量
+#     is_true = np.abs(y_pred - y_true) <= Threshold
+#     is_true_cast = np.cast(is_true, tf.float32)
+#     acc_rate_regression = np.sum(is_true_cast) / is_true_cast.shape[0]
+#     return acc_rate_regression
+
+def graph_cl25(dataset):
     ''''''
     model_cl25 = Cl25()
     optimizer = tf.keras.optimizers.SGD(lr=1e-2)
     model_cl25.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    train_data, test_data = spliting(dataset, 2269)
+    flag = 0
     for epoch in range(10000):
-
-
+        for train_data_batch in input(dataset=train_data, batch_size=500):
+            loss_train = model_cl25.train_on_batch(x=train_data_batch[:, :-1], y=train_data_batch[:, -1][:, np.newaxis])
+            if epoch % 100 == 0 and flag == 0:
+                print('训练集损失函数值为: %s' % loss_train)
+                flag = 1
+        flag = 0
+        if epoch % 100 == 0:
+            model_cl25.evaluate(x=test_data[:, :-1], y=test_data[:, -1][:, np.newaxis], verbose=0)
 
 if __name__ == '__main__':
-    pass
+    path = '/home/xiaosong/桌面/pny_cl25.pickle'
+    dataset = LoadFile(p=path)
+    graph_cl25(dataset=dataset)
