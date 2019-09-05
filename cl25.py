@@ -151,24 +151,20 @@ def spliting(dataset, size):
     train_row = list(filter(lambda x: x not in test_row, range(len(dataset)-1)))
     return dataset[train_row, :], dataset[test_row, :]
 
-def onehot(dataset):
+def onehot(dataset, class_number):
     '''
     将所有标签按数值大小编码为one-hot稀疏向量
     :param dataset: 数据集特征矩阵,最后一列为半径标签
+    :param class_number: onehot编码长度
     :return: 标签半径被编码后的数据集
     '''
-    #将label_dict排列
-    label_pri = dataset[:, -1]
-    label_dict = Counter(label_pri)
-    #标签生序字典
-    label_sort = sorted(label_dict.items(), key=lambda l: l[0])
     label_pri_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(dataset.shape[-1])])
     #数据集按标签生序排列
     label_pri_pd.sort_values('%s' % label_pri_pd.columns[-1], inplace=True)
     label_pri_sort = np.array(label_pri_pd)
     index = 0
-    one_hot_metric = np.zeros(dtype=np.float32, shape=(dataset.shape[0], len(label_sort)))
-    for group in label_sort:
+    one_hot_metric = np.zeros(dtype=np.float32, shape=(dataset.shape[0], class_number))
+    for group in class_number:
         one_hot_metric[index:index+group[-1], label_sort.index(group)] = 1
         index += group[-1]
     dataset_onehot = np.hstack((label_pri_sort[:, :-1], one_hot_metric))
