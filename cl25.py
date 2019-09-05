@@ -158,17 +158,16 @@ def onehot(dataset, class_number):
     :param class_number: onehot编码长度
     :return: 标签半径被编码后的数据集
     '''
-    label_pri_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(dataset.shape[-1])])
-    #数据集按标签生序排列
-    label_pri_pd.sort_values('%s' % label_pri_pd.columns[-1], inplace=True)
-    label_pri_sort = np.array(label_pri_pd)
-    index = 0
-    one_hot_metric = np.zeros(dtype=np.float32, shape=(dataset.shape[0], class_number))
-    for group in class_number:
-        one_hot_metric[index:index+group[-1], label_sort.index(group)] = 1
-        index += group[-1]
-    dataset_onehot = np.hstack((label_pri_sort[:, :-1], one_hot_metric))
-    np.random.shuffle(dataset_onehot)
+    dataset_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(dataset.shape[-1]-1)]+['cl'])
+    dataset_onehot = np.array([0])
+    for cl_number in range(class_number):
+        dataset_sub_pd = dataset_pd.loc[dataset_pd['cl'] == cl_number]
+        if dataset_sub_pd.values.shape[0] == 0: continue
+        one_hot_label = np.zeros(shape=[dataset_sub_pd.values.shape[0], class_number], dtype=np.float32)
+        one_hot_label[:, cl_number] = 1
+        one_hot_dataset = np.hstack((dataset_sub_pd.values[:, :-1], one_hot_label))
+        dataset_onehot = one_hot_dataset if dataset_onehot.any() == 0 else \
+            np.vstack((dataset_onehot, one_hot_dataset))
     return dataset_onehot
 
 # def acc_regression(Threshold, y_true, y_pred):
@@ -187,7 +186,7 @@ def onehot(dataset, class_number):
 
 def graph_cl25(dataset):
     ''''''
-    dataset = onehot(dataset)
+    dataset = onehot(dataset, 25)
     print(dataset.shape)
     model_cl25 = Cl25()
     optimizer = tf.keras.optimizers.SGD(lr=1e-2)
