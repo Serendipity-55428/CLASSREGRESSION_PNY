@@ -8,8 +8,10 @@
 @time: 2019/9/4 下午10:17
 '''
 from classifier_dataset import LoadFile, SaveFile
+from collections import Counter
 import tensorflow as tf
 import numpy as np
+import pandas as pd
 class Resnet:
 
     def __init__(self, x, filters, kernel_size, name, padding='same', activation=tf.nn.relu,
@@ -108,17 +110,18 @@ def Cl25():
 
         # resnet5 = Resnet(x=res4, filters=128, kernel_size=[3, 3], name='resnet5')
         # res5 = resnet5.resnet_2layers()
-
         flat = tf.keras.layers.Flatten(name='flat')(res4)
     with tf.name_scope('dnn'):
-        layer = tf.concat(values=[flat, input1], axis=1)
+        def concat(inputs):
+            return tf.concat(values=inputs, axis=1)
+        layer = tf.keras.layers.Lambda(concat)(inputs=[flat, input1])
         layer = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
                                       bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc1')(layer)
         layer = tf.keras.layers.Dense(units=200, activation=tf.nn.relu, use_bias=True,
                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
                                       bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc2')(layer)
-        layer = tf.keras.layers.Dense(units=3, activation=tf.nn.softmax, use_bias=True,
+        layer = tf.keras.layers.Dense(units=25, activation=tf.nn.softmax, use_bias=True,
                                        kernel_initializer=tf.keras.initializers.TruncatedNormal,
                                        bias_initializer=tf.keras.initializers.TruncatedNormal, name='output')(layer)
 
@@ -148,6 +151,30 @@ def spliting(dataset, size):
     train_row = list(filter(lambda x: x not in test_row, range(len(dataset)-1)))
     return dataset[train_row, :], dataset[test_row, :]
 
+def onehot(dataset):
+    '''
+    将所有标签按数值大小编码为one-hot稀疏向量
+    :param dataset: 数据集特征矩阵,最后一列为半径标签
+    :return: 标签半径被编码后的数据集
+    '''
+    #将label_dict排列
+    label_pri = dataset[:, -1]
+    label_dict = Counter(label_pri)
+    #标签生序字典
+    label_sort = sorted(label_dict.items(), key=lambda l: l[0])
+    label_pri_pd = pd.DataFrame(data=dataset, columns=[str(i) for i in range(dataset.shape[-1])])
+    #数据集按标签生序排列
+    label_pri_pd.sort_values('%s' % label_pri_pd.columns[-1], inplace=True)
+    label_pri_sort = np.array(label_pri_pd)
+    index = 0
+    one_hot_metric = np.zeros(dtype=np.float32, shape=(dataset.shape[0], len(label_sort)))
+    for group in label_sort:
+        one_hot_metric[index:index+group[-1], label_sort.index(group)] = 1
+        index += group[-1]
+    dataset_onehot = np.hstack((label_pri_sort[:, :-1], one_hot_metric))
+    np.random.shuffle(dataset_onehot)
+    return dataset_onehot
+
 # def acc_regression(Threshold, y_true, y_pred):
 #     '''
 #     回归精确度（预测值与实际值残差在阈值范围内的数量/样本总数）
@@ -164,20 +191,22 @@ def spliting(dataset, size):
 
 def graph_cl25(dataset):
     ''''''
+    dataset = onehot(dataset)
+    print(dataset.shape)
     model_cl25 = Cl25()
     optimizer = tf.keras.optimizers.SGD(lr=1e-2)
-    model_cl25.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    train_data, test_data = spliting(dataset, 2269)
+    model_cl25.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+    train_data, test_data = spliting(dataset, 6000)
     flag = 0
     for epoch in range(10000):
         for train_data_batch in input(dataset=train_data, batch_size=500):
-            loss_train = model_cl25.train_on_batch(x=train_data_batch[:, :-1], y=train_data_batch[:, -1][:, np.newaxis])
+            loss_train = model_cl25.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-25]], y=train_data_batch[:, -25:])
             if epoch % 100 == 0 and flag == 0:
                 print('训练集损失函数值为: %s' % loss_train)
                 flag = 1
         flag = 0
         if epoch % 100 == 0:
-            model_cl25.evaluate(x=test_data[:, :-1], y=test_data[:, -1][:, np.newaxis], verbose=0)
+            model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
 
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_cl25.pickle'
