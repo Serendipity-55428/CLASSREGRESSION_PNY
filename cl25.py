@@ -12,6 +12,10 @@ from collections import Counter
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+from keras.models import load_model
+import os
+import os.path as osp
+from keras import backend as K
 class Resnet:
 
     def __init__(self, x, filters, kernel_size, name, padding='same', activation=tf.nn.relu,
@@ -184,9 +188,16 @@ def onehot(dataset, class_number):
 #     acc_rate_regression = np.sum(is_true_cast) / is_true_cast.shape[0]
 #     return acc_rate_regression
 
-def graph_cl25(dataset):
-    ''''''
+def graph_cl25(dataset, save_path):
+    '''
+    训练保存模型
+    :param dataset: 归一化后的非onehot数据集
+    :param save_path: 保存模型路径
+    :return: None
+    '''
     dataset = onehot(dataset, 25)
+    rng = np.random.RandomState(0)
+    rng.shuffle(dataset)
     model_cl25 = Cl25()
     optimizer = tf.keras.optimizers.SGD(lr=1e-2)
     model_cl25.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -202,9 +213,14 @@ def graph_cl25(dataset):
             _, acc = model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
             print('测试集准确率为: %s' % acc)
         flag = 0
+    model_cl25.save(save_path)
+
+
+
 
 
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_cl25.pickle'
+    save_path = '/home/xiaosong/桌面/graph_cl_re/graph_cl.h5'
     dataset = LoadFile(p=path)
-    graph_cl25(dataset=dataset)
+    graph_cl25(dataset=dataset, save_path=save_path)
