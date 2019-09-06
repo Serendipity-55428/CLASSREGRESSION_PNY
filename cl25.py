@@ -193,13 +193,14 @@ def graph_cl25(dataset):
     train_data, test_data = spliting(dataset, 6000)
     flag = 0
     for epoch in range(10000):
-        if epoch % 100 == 0:
-            model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=1)
         for train_data_batch in input(dataset=train_data, batch_size=500):
-            loss_train = model_cl25.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-25]], y=train_data_batch[:, -25:])
+            loss_train, _= model_cl25.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-25]], y=train_data_batch[:, -25:])
             if epoch % 100 == 0 and flag == 0:
-                print('训练集损失函数值为: %s' % loss_train)
+                print('第%s轮后训练集损失函数值为: %s' % (epoch, loss_train))
                 flag = 1
+        if epoch % 100 == 0:
+            _, acc = model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
+            print('测试集准确率为: %s' % acc)
         flag = 0
 
 
