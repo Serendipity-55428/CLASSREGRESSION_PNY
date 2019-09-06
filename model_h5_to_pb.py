@@ -14,13 +14,17 @@ import os.path as osp
 from keras import backend as K
 from tensorflow.python.framework import graph_util,graph_io
 from tensorflow.python.tools import import_pb_to_tensorboard
-#路径参数
-input_path = 'input path'
-weight_file = 'model.h5'
-weight_file_path = osp.join(input_path,weight_file)
-output_graph_name = weight_file[:-3] + '.pb'
-#转换函数
+
 def h5_to_pb(h5_model,output_dir,model_name,out_prefix = "output_",log_tensorboard = True):
+    '''
+    将h5格式的计算图转化为pb格式的计算图
+    :param h5_model: h5格式的计算图
+    :param output_dir: pb格式保存路径
+    :param model_name: 生成的pb文件模型路径
+    :param out_prefix: 生成的pb文件中输出节点前缀
+    :param log_tensorboard: 是否对计算图进行可视化的标记
+    :return:
+    '''
     if osp.exists(output_dir) == False:
         os.mkdir(output_dir)
     out_nodes = []
@@ -33,10 +37,13 @@ def h5_to_pb(h5_model,output_dir,model_name,out_prefix = "output_",log_tensorboa
     graph_io.write_graph(main_graph,output_dir,name = model_name,as_text = False)
     if log_tensorboard:
         import_pb_to_tensorboard.import_to_tensorboard(osp.join(output_dir,model_name),output_dir)
+
 if  __name__ == '__main__':
-    # 输出路径
-    output_dir = osp.join(os.getcwd(), "trans_model")
-    # 加载模型
-    h5_model = load_model(weight_file_path)
-    h5_to_pb(h5_model, output_dir=output_dir, model_name=output_graph_name)
-    print('model saved')
+    # pb格式模型保存路径
+    output_dir = ''
+    # h5模型路径
+    path = ''
+    # 生成的pb文件模型路径
+    path_pb = ''
+    h5_model = load_model(filepath=path)
+    h5_to_pb(h5_model, output_dir=output_dir, model_name=path_pb)
