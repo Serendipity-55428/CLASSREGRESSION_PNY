@@ -215,10 +215,6 @@ def graph_cl25(dataset, save_path):
         flag = 0
     model_cl25.save(save_path)
 
-
-
-
-
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_cl25.pickle'
     save_path = '/home/xiaosong/桌面/graph_cl_re/graph_cl.h5'
