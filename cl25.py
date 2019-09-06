@@ -174,20 +174,6 @@ def onehot(dataset, class_number):
             np.vstack((dataset_onehot, one_hot_dataset))
     return dataset_onehot
 
-# def acc_regression(Threshold, y_true, y_pred):
-#     '''
-#     回归精确度（预测值与实际值残差在阈值范围内的数量/样本总数）
-#     :param Threshold: 预测值与实际值之间的绝对值之差阈值
-#     :param y_true: 样本实际标签
-#     :param y_pred: 样本预测结果
-#     :return: 精确率，type: ndarray
-#     '''
-#     # 残差布尔向量
-#     is_true = np.abs(y_pred - y_true) <= Threshold
-#     is_true_cast = np.cast(is_true, tf.float32)
-#     acc_rate_regression = np.sum(is_true_cast) / is_true_cast.shape[0]
-#     return acc_rate_regression
-
 def graph_cl25(dataset, save_path):
     '''
     训练保存模型
