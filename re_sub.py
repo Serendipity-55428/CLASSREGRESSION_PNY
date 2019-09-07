@@ -24,57 +24,48 @@ def acc_regression(Threshold, y_true, y_pred):
     acc_rate_regression = np.sum(is_true_cast) / is_true_cast.shape[0]
     return acc_rate_regression
 
-class R_regression(tf.keras.Model):
-    def __init__(self):
-        super().__init__()
-        # 卷积层
-        self.__reshape1 = tf.keras.layers.Reshape(target_shape=[10, 10, 1], name='reshape')
-        self.__conv1 = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
-                                              kernel_initializer=tf.keras.initializers.TruncatedNormal, name='conv1')
-        self.__pool1 = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool1')
-        self.__bn1 = tf.keras.layers.BatchNormalization(name='bn1')
-        self.__conv2 = tf.keras.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu,
-                                              kernel_initializer=tf.keras.initializers.TruncatedNormal, name='conv2')
-        self.__pool2 = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool2')
-        self.__flat1 = tf.keras.layers.Flatten(name='flat1')
-        #rnn层
-        self.__reshape2 = tf.keras.layers.Reshape(target_shape=[24, 24], name='x_lstm')
-        self.__lstm1 = tf.keras.layers.LSTM(units=128, dropout=0.8, return_sequences=True, name='lstm1')
-        self.__lstm2 = tf.keras.layers.LSTM(units=128, dropout=0.8, return_sequences=False, name='lstm2')
-        self.__flat2 = tf.keras.layers.Flatten(name='flat2')
-        #dnn层
+def R_regression():
+    '''
+    后期回归模型: cnn+lstm+dnn
+    :return: 回归模型
+    '''
+    with tf.name_scope('input'):
+        input1 = tf.keras.layers.Input(shape=(4, ), name='input1')
+        input2 = tf.keras.layers.Input(shape=(100,), name='input2')
+    with tf.name_scope('cnn'):
+        layer = tf.keras.layers.Reshape(target_shape=[10, 10, 1], name='reshape')(input2)
+        layer = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
+                                       kernel_initializer=tf.keras.initializers.TruncatedNormal(), name='conv1')(layer)
+        layer = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool1')(layer)
+        layer = tf.keras.layers.BatchNormalization(name='bn1')(layer)
+        layer = tf.keras.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=tf.nn.relu,
+                                       kernel_initializer=tf.keras.initializers.TruncatedNormal(), name='conv2')(layer)
+        layer = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool2')(layer)
+        layer = tf.keras.layers.Flatten(name='flat1')(layer)
+    with tf.name_scope('rnn'):
+        # rnn层
+        layer = tf.keras.layers.Reshape(target_shape=[24, 24], name='x_lstm')(layer)
+        layer = tf.keras.layers.LSTM(units=128, dropout=0.8, return_sequences=True, name='lstm1')(layer)
+        layer = tf.keras.layers.LSTM(units=128, dropout=0.8, return_sequences=False, name='lstm2')(layer)
+        layer = tf.keras.layers.Flatten(name='flat2')(layer)
+    with tf.name_scope('dnn'):
+        # dnn层
         def concat(inputs):
             return tf.concat(values=inputs, axis=1)
-        self.__concat = tf.keras.layers.Lambda(concat, name='concat1')
-        self.__fc1 = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
-                                           kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                           bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc1')
-        self.__dropout1 = tf.keras.layers.Dropout(rate=0.2, name='x_dpt1')
-        self.__fc2 = tf.keras.layers.Dense(units=200, activation=tf.nn.relu, use_bias=True,
-                                           kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                           bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc2')
-        self.__dropout2 = tf.keras.layers.Dropout(rate=0.2, name='x_dpt2')
-        self.__output = tf.keras.layers.Dense(units=1, activation=tf.nn.relu, use_bias=True,
-                                              kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                              bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc3')
-    def call(self, inputs, training=True, mask=None):
-        layer = self.__reshape1(inputs[-1])
-        layer = self.__conv1(layer)
-        layer = self.__pool1(layer)
-        layer = self.__bn1(layer)
-        layer = self.__conv2(layer)
-        layer = self.__pool2(layer)
-        layer = self.__flat1(layer)
-        layer = self.__reshape2(layer)
-        layer = self.__lstm1(layer)
-        layer = self.__lstm2(layer)
-        layer = self.__flat2(layer)
-        layer = self.__concat(inputs=[inputs[0], layer])
-        layer = self.__fc1(layer)
-        layer = self.__dropout1(layer)
-        layer = self.__fc2(layer)
-        layer = self.__dropout2(layer)
-        return self.__output(layer)
+        layer = tf.keras.layers.Lambda(concat, name='concat1')(inputs=[input1, layer])
+        layer = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
+                                      kernel_initializer=tf.keras.initializers.TruncatedNormal(),
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal(), name='x_fc1')(layer)
+        layer = tf.keras.layers.Dropout(rate=0.2, name='x_dpt1')(layer)
+        layer = tf.keras.layers.Dense(units=200, activation=tf.nn.relu, use_bias=True,
+                                      kernel_initializer=tf.keras.initializers.TruncatedNormal(),
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal(), name='x_fc2')(layer)
+        layer = tf.keras.layers.Dropout(rate=0.2, name='x_dpt2')(layer)
+        layer = tf.keras.layers.Dense(units=1, activation=tf.nn.relu, use_bias=True,
+                                      kernel_initializer=tf.keras.initializers.TruncatedNormal(),
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal(), name='x_fc3')(layer)
+    model = tf.keras.Model(inputs=[input1, input2], outputs=layer)
+    return model
 
 def graph_re(dataset, save_path):
     ''''''
@@ -86,7 +77,7 @@ def graph_re(dataset, save_path):
     for  epoch in range(10000):
         for train_data_batch in input(dataset=train_data, batch_size=500):
             loss_train, _ = r_regression.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-1]],
-                                                      y=train_data_batch[:, -1])
+                                                        y=train_data_batch[:, -1])
             if epoch % 100 == 0 and flag == 0:
                 print('第%s轮后训练集损失函数值为: %s' % (epoch, loss_train))
                 flag = 1
@@ -102,3 +93,9 @@ if __name__ == '__main__':
     save_path = '/home/xiaosong/桌面/graph_cl_re/graph_re.h5'
     dataset = LoadFile(p=path)
     graph_re(dataset=dataset, save_path=save_path)
+    #测试模型
+    # model = tf.keras.models.load_model(save_path)
+    # train_data, test_data = spliting(dataset, 6000)
+    # r_predict = model.predict(x=[test_data[:, :4], test_data[:, 4:-1]], verbose=0)
+    # acc = acc_regression(Threshold=10, y_true=test_data[:, -1], y_pred=r_predict)
+    # print('测试集准确率为: %s' % acc)
