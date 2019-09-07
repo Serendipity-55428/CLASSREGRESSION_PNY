@@ -94,13 +94,13 @@ def Cl25():
         input1 = tf.keras.Input(shape=(4,), name='input1')
         input2 = tf.keras.Input(shape=(100,), name='input2')
     with tf.name_scope('resnet'):
-        layer = tf.keras.layers.Reshape(target_shape=(10, 10, 1), name='reshape1')(input2)
+        layer1 = tf.keras.layers.Reshape(target_shape=(10, 10, 1), name='reshape1')(input2)
         # 初始卷积池化层
-        layer = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
-                                       kernel_initializer=tf.keras.initializers.TruncatedNormal, name='conv1')(layer)
-        layer = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool1')(layer)
+        layer2 = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
+                                       kernel_initializer=tf.keras.initializers.TruncatedNormal, name='conv1')(layer1)
+        layer3 = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same', name='pool1')(layer2)
         # 残差层
-        resnet = Resnet(x=layer, filters=64, kernel_size=[3, 3], name='resnet1')
+        resnet = Resnet(x=layer3, filters=64, kernel_size=[3, 3], name='resnet1')
         res1 = resnet.resnet_2layers()
 
         resnet2 = Resnet(x=res1, filters=128, kernel_size=[3, 3], name='resnet2')
@@ -118,18 +118,17 @@ def Cl25():
     with tf.name_scope('dnn'):
         def concat(inputs):
             return tf.concat(values=inputs, axis=1)
-        layer = tf.keras.layers.Lambda(concat)(inputs=[flat, input1])
-        layer = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
+        layer4 = tf.keras.layers.Lambda(concat)(inputs=[flat, input1])
+        layer5 = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                      bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc1')(layer)
-        layer = tf.keras.layers.Dense(units=200, activation=tf.nn.relu, use_bias=True,
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc1')(layer4)
+        layer6 = tf.keras.layers.Dense(units=200, activation=tf.nn.relu, use_bias=True,
                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                      bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc2')(layer)
-        layer = tf.keras.layers.Dense(units=25, activation=tf.nn.softmax, use_bias=True,
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal, name='x_fc2')(layer5)
+        layer7 = tf.keras.layers.Dense(units=25, activation=tf.nn.softmax, use_bias=True,
                                        kernel_initializer=tf.keras.initializers.TruncatedNormal,
-                                       bias_initializer=tf.keras.initializers.TruncatedNormal, name='output')(layer)
-
-    model_cl25 = tf.keras.Model(inputs=[input1, input2], outputs=layer)
+                                       bias_initializer=tf.keras.initializers.TruncatedNormal, name='output')(layer6)
+    model_cl25 = tf.keras.Model(inputs=[input1, input2], outputs=layer7)
     return model_cl25
 
 def input(dataset, batch_size):
@@ -189,7 +188,7 @@ def graph_cl25(dataset, save_path):
     model_cl25.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     train_data, test_data = spliting(dataset, 6000)
     flag = 0
-    for epoch in range(10000):
+    for epoch in range(1):
         for train_data_batch in input(dataset=train_data, batch_size=500):
             loss_train, _= model_cl25.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-25]], y=train_data_batch[:, -25:])
             if epoch % 100 == 0 and flag == 0:
@@ -199,10 +198,17 @@ def graph_cl25(dataset, save_path):
             _, acc = model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
             print('测试集准确率为: %s' % acc)
         flag = 0
-    model_cl25.save(save_path)
+    model_cl25.get_config()
+    model_cl25.save(filepath=save_path)
+    # tf.keras.models.save_model(model=model_cl25, filepath=save_path)
 
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_cl25.pickle'
     save_path = '/home/xiaosong/桌面/graph_cl_re/graph_cl.h5'
     dataset = LoadFile(p=path)
     graph_cl25(dataset=dataset, save_path=save_path)
+    model = tf.keras.models.load_model(save_path)
+    # 测试导入模型
+    # train_data, test_data = spliting(dataset, 6000)
+    # _, acc = model.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
+    # print('测试集准确率为: %s' % acc)
