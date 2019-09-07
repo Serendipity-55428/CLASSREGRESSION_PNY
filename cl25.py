@@ -12,10 +12,6 @@ from collections import Counter
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from keras.models import load_model
-import os
-import os.path as osp
-from keras import backend as K
 class Resnet:
 
     def __init__(self, x, filters, kernel_size, name, padding='same', activation=tf.nn.relu,
