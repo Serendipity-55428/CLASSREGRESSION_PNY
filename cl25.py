@@ -207,8 +207,10 @@ if __name__ == '__main__':
     save_path = '/home/xiaosong/桌面/graph_cl_re/graph_cl.h5'
     dataset = LoadFile(p=path)
     graph_cl25(dataset=dataset, save_path=save_path)
-    model = tf.keras.models.load_model(save_path)
+    # model = tf.keras.models.load_model(save_path)
     # 测试导入模型
     # train_data, test_data = spliting(dataset, 6000)
     # _, acc = model.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
     # print('测试集准确率为: %s' % acc)
+    # layer = tf.keras.layers.Dense(32)
+    # print(layer.get_config())

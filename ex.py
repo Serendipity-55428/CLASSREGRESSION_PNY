@@ -51,13 +51,15 @@ def train(x_train, y_train, x_test, y_test):
     cnn = CNN()
     optimizer = tf.keras.optimizers.Adam(lr=1e-2)
     cnn.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    for i in range(10000):
+    for i in range(1):
         for j in range(0, 10000, 500):
             xt, yt = x_train[j:j+500], y_train[j:j+500]
             a = cnn.train_on_batch(x=xt, y=yt)
             print(a)
         cnn.evaluate(x=x_test[:3000], y=y_test[:3000], verbose=0)
         c = cnn.predict(x=x_test[:3000])
+    print(cnn.get_config())
+    cnn.save('/home/xiaosong/桌面/ex.h5')
 
 
 if __name__ == '__main__':
