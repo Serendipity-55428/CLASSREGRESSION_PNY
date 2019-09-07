@@ -20,7 +20,7 @@ def acc_regression(Threshold, y_true, y_pred):
     '''
     # 残差布尔向量
     is_true = np.abs(y_pred - y_true) <= Threshold
-    is_true_cast = np.cast(is_true, tf.float32)
+    is_true_cast = np.where(is_true, 1, 0)
     acc_rate_regression = np.sum(is_true_cast) / is_true_cast.shape[0]
     return acc_rate_regression
 
@@ -74,23 +74,23 @@ def graph_re(dataset, save_path):
     r_regression.compile(optimizer=optimizer, loss=tf.keras.losses.mean_squared_error)
     train_data, test_data = spliting(dataset, 6000)
     flag = 0
-    for  epoch in range(10000):
+    for  epoch in range(1):
         for train_data_batch in input(dataset=train_data, batch_size=500):
-            loss_train, _ = r_regression.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-1]],
+            loss_train = r_regression.train_on_batch(x=[train_data_batch[:, :4], train_data_batch[:, 4:-1]],
                                                         y=train_data_batch[:, -1])
             if epoch % 100 == 0 and flag == 0:
                 print('第%s轮后训练集损失函数值为: %s' % (epoch, loss_train))
                 flag = 1
         if epoch % 100 == 0:
             r_predict = r_regression.predict(x=[test_data[:, :4], test_data[:, 4:-1]], verbose=0)
-            acc = acc_regression(Threshold=10, y_true=test_data[:, -1], y_pred=r_predict)
+            acc = acc_regression(Threshold=0.1, y_true=test_data[:, -1][:, np.newaxis], y_pred=r_predict)
             print('测试集准确率为: %s' % acc)
         flag = 0
     r_regression.save(save_path)
 
 if __name__ == '__main__':
     path = '/home/xiaosong/桌面/pny_regression_sub.pickle'
-    save_path = '/home/xiaosong/桌面/graph_cl_re/graph_re.h5'
+    save_path = '/home/xiaosong/桌面/graph_re.h5'
     dataset = LoadFile(p=path)
     graph_re(dataset=dataset, save_path=save_path)
     #测试模型

@@ -9,52 +9,52 @@
 '''
 import numpy as np
 import tensorflow as tf
-# class CNN(tf.keras.Model):
-#     def __init__(self):
-#         super().__init__()
-#         self.layer0 = tf.keras.layers.Reshape(target_shape=[28, 28, 1])
-#         print(self.layer0.get_config())
-#         self.layer1 = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.keras.activations.relu,
-#                                        kernel_initializer=tf.keras.initializers.TruncatedNormal())
-#         print(self.layer1.get_config())
-#         self.layer2 = tf.keras.layers.Conv2D(filters=64, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
-#                                        kernel_initializer=tf.keras.initializers.TruncatedNormal)
-#         # print(self.layer2.get_config())
-#         self.layer3 = tf.keras.layers.Flatten()
-#         print(self.layer3.get_config())
-#         self.layer4 = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
-#                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
-#                                       bias_initializer=tf.keras.initializers.TruncatedNormal)
-#         # print(self.layer4.get_config())
-#         self.layer5 = tf.keras.layers.Dense(units=10, activation=tf.nn.softmax, use_bias=True,
-#                                       kernel_initializer=tf.keras.initializers.TruncatedNormal,
-#                                       bias_initializer=tf.keras.initializers.TruncatedNormal)
-#         # print(self.layer5.get_config())
-#     def call(self, inputs, **kwargs):
-#         cnn = self.layer0(inputs)
-#         cnn = self.layer1(cnn)
-#         cnn = self.layer2(cnn)
-#         cnn = self.layer3(cnn)
-#         cnn = self.layer4(cnn)
-#         return self.layer5(cnn)
+class CNN(tf.keras.Model):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.layer0 = tf.keras.layers.Reshape(input_shape=(28, 28), target_shape=[28, 28, 1])
+        print(self.layer0.get_config())
+        self.layer1 = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.keras.activations.relu,
+                                       kernel_initializer=tf.keras.initializers.TruncatedNormal())
+        print(self.layer1.get_config())
+        self.layer2 = tf.keras.layers.Conv2D(filters=64, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
+                                       kernel_initializer=tf.keras.initializers.TruncatedNormal)
+        # print(self.layer2.get_config())
+        self.layer3 = tf.keras.layers.Flatten()
+        print(self.layer3.get_config())
+        self.layer4 = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
+                                      kernel_initializer=tf.keras.initializers.TruncatedNormal,
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal)
+        # print(self.layer4.get_config())
+        self.layer5 = tf.keras.layers.Dense(units=10, activation=tf.nn.softmax, use_bias=True,
+                                      kernel_initializer=tf.keras.initializers.TruncatedNormal,
+                                      bias_initializer=tf.keras.initializers.TruncatedNormal)
+        # print(self.layer5.get_config())
+    def call(self, inputs, **kwargs):
+        cnn = self.layer0(inputs)
+        cnn = self.layer1(cnn)
+        cnn = self.layer2(cnn)
+        cnn = self.layer3(cnn)
+        cnn = self.layer4(cnn)
+        return self.layer5(cnn)
 
-input = tf.keras.Input(shape=(28, 28))
-cnn = tf.keras.layers.Reshape(target_shape=[28, 28, 1])(input)
-cnn = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
-                                     kernel_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
-cnn = tf.keras.layers.Conv2D(filters=64, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
-                                     kernel_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
-cnn = tf.keras.layers.Flatten()(cnn)
-cnn = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
-                            kernel_initializer=tf.keras.initializers.TruncatedNormal(),
-                            bias_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
-cnn = tf.keras.layers.Dense(units=10, activation=tf.nn.softmax, use_bias=True,
-                            kernel_initializer=tf.keras.initializers.TruncatedNormal(),
-                            bias_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
-cnn = tf.keras.Model(inputs=input, outputs=cnn)
+# input = tf.keras.Input(shape=(28, 28))
+# cnn = tf.keras.layers.Reshape(target_shape=[28, 28, 1])(input)
+# cnn = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
+#                                      kernel_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
+# cnn = tf.keras.layers.Conv2D(filters=64, kernel_size=[5, 5], padding='same', activation=tf.nn.relu,
+#                                      kernel_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
+# cnn = tf.keras.layers.Flatten()(cnn)
+# cnn = tf.keras.layers.Dense(units=100, activation=tf.nn.relu, use_bias=True,
+#                             kernel_initializer=tf.keras.initializers.TruncatedNormal(),
+#                             bias_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
+# cnn = tf.keras.layers.Dense(units=10, activation=tf.nn.softmax, use_bias=True,
+#                             kernel_initializer=tf.keras.initializers.TruncatedNormal(),
+#                             bias_initializer=tf.keras.initializers.TruncatedNormal())(cnn)
+# cnn = tf.keras.Model(inputs=input, outputs=cnn)
 
 def train(x_train, y_train, x_test, y_test):
-    # cnn = CNN()
+    cnn = CNN()
     optimizer = tf.keras.optimizers.Adam(lr=1e-2)
     cnn.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     for i in range(1):
@@ -65,16 +65,16 @@ def train(x_train, y_train, x_test, y_test):
         cnn.evaluate(x=x_test[:3000], y=y_test[:3000], verbose=0)
         c = cnn.predict(x=x_test[:3000])
     # print(cnn.get_config())
-    cnn.save('/home/xiaosong/桌面/ex.h5')
+    cnn.save(filepath='/home/xiaosong/桌面/ex.h5')
 
 
 if __name__ == '__main__':
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     x_train, x_test = x_train / 255, x_test / 255
     print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
-    # train(x_train, y_train, x_test, y_test)
-    model = tf.keras.models.load_model('/home/xiaosong/桌面/ex.h5')
-    model.evaluate(x=x_test[:3000], y=y_test[:3000], verbose=1)
+    train(x_train, y_train, x_test, y_test)
+    # model = tf.keras.models.load_model('/home/xiaosong/桌面/ex.h5')
+    # model.evaluate(x=x_test[:3000], y=y_test[:3000], verbose=1)
     # a = tf.keras.layers.Conv2D(filters=32, kernel_size=[5, 5])
     # print(a.get_config())
     # import numpy  # 导入数据库
