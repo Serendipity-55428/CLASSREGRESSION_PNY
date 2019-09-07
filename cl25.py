@@ -197,7 +197,7 @@ def graph_cl25(dataset, save_path):
             _, acc = model_cl25.evaluate(x=[test_data[:, :4], test_data[:, 4:-25]], y=test_data[:, -25:], verbose=0)
             print('测试集准确率为: %s' % acc)
         flag = 0
-    model_cl25.get_config()
+    # print(model_cl25.get_config())
     model_cl25.save(filepath=save_path)
 
 if __name__ == '__main__':
