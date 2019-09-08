@@ -83,8 +83,10 @@ def graph_re(dataset, save_path):
                 flag = 1
         if epoch % 100 == 0:
             r_predict = r_regression.predict(x=[test_data[:, :4], test_data[:, 4:-1]], verbose=0)
-            acc = acc_regression(Threshold=0.1, y_true=test_data[:, -1][:, np.newaxis], y_pred=r_predict)
-            print('测试集准确率为: %s' % acc)
+            acc1 = acc_regression(Threshold=0.3, y_true=test_data[:, -1][:, np.newaxis], y_pred=r_predict)
+            acc2 = acc_regression(Threshold=0.2, y_true=test_data[:, -1][:, np.newaxis], y_pred=r_predict)
+            acc3 = acc_regression(Threshold=0.1, y_true=test_data[:, -1][:, np.newaxis], y_pred=r_predict)
+            print('T1=%s, acc1=%s  T2=%s, acc2=%s, T3=%s, acc3=%s' % (0.3, acc1, 0.2, acc2, 0.1, acc3))
         flag = 0
     r_regression.save(save_path)
 
